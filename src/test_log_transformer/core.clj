@@ -8,11 +8,14 @@
 
 (defroutes app
   (GET "/" []
-       {:status 200
-        :headers {"Content-Type" "text/plain"}
-        :body "You shouldn't be here!"})
+    {:status 200
+     :headers {"Content-Type" "text/plain"}
+     :body "You shouldn't be here!"})
+  (POST "/ingest" request
+    (prn request)
+    {:status 204})
   (ANY "*" []
-       (route/not-found "This is not the page you're looking for!")))
+    (route/not-found "This is not the page you're looking for!")))
 
 (defn -main [& [port]]
   (let [port (Integer. (or port (env :port) 5000))]
