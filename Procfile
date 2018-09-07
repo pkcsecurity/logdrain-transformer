@@ -1,0 +1,1 @@
+web: java $JVM_OPTS -cp target/test-log-transformer-standalone.jar clojure.main -m test-log-transformer.core
