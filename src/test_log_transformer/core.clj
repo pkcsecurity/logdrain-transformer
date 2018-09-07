@@ -12,7 +12,7 @@
      :headers {"Content-Type" "text/plain"}
      :body "You shouldn't be here!"})
   (POST "/ingest" request
-    (prn request)
+    (prn (:body request))
     {:status 204})
   (ANY "*" []
     (route/not-found "This is not the page you're looking for!")))
