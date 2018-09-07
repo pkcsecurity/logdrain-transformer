@@ -1,4 +1,4 @@
-(ns test-log-transformer.core
+(ns logdrain-transformer.core
   (:require [compojure.core :refer [defroutes GET PUT POST DELETE ANY]]
             [compojure.handler :refer [site]]
             [compojure.route :as route]

@@ -1,36 +1,3 @@
 # test-log-transformer
 
-FIXME: description
-
-## Installation
-
-Download from http://example.com/FIXME.
-
-## Usage
-
-FIXME: explanation
-
-    $ java -jar test-log-transformer-0.1.0-standalone.jar [args]
-
-## Options
-
-FIXME: listing of options this app accepts.
-
-## Examples
-
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
-
-## License
-
-Copyright © 2018 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+A tool to be used as an endpont for a Heroku Logplex HTTPS Log Drain. Parses the syslogs, puts them into an acceptable format for indexing via Elasticsearch, and then sends them to an Elasiticsearch ingest endpoint.
