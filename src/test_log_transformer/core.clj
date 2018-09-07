@@ -11,8 +11,8 @@
     {:status 200
      :headers {"Content-Type" "text/plain"}
      :body "You shouldn't be here!"})
-  (POST "/ingest" request
-    (prn request)
+  (POST "/ingest" [blahkey coolkey]
+    (println blahkey " | " coolkey)
     {:status 204})
   (ANY "*" []
     (route/not-found "This is not the page you're looking for!")))
