@@ -10,6 +10,5 @@
   :min-lein-version "2.7.1"
   :plugins [[environ/environ.lein "LATEST"]]
   :hooks[environ.leiningen.hooks]
-  :target-path "target/%s"
   :uberjar-name "test-log-transformer-standalone.jar"
   :profiles {:production {:env {:production true}}})
