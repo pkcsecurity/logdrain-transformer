@@ -16,16 +16,17 @@
     ;; and it only forwards the elastic server's response. TODO: not that.
     (let [parts (-> body-stream
                     (slurp)
-                    (string/split #" " 4)
+                    (string/split #" " 8)
                     (nthnext 2))
           date (first parts)
-          message (second parts)]
+          host (str (nth parts 2) "[" (nth parts 3) "]")
+          message (last parts)]
       (println "Got /ingest POST - date: " date ", message: " message)
       (let [response (client/post (str elastic-url "/logs/_doc/")
                                   {:content-type :json
-                                   :form-params {:date date :message message}})]
-        (prn response)
-        response)))
+                                   :form-params {:date date :host host :message message}})]
+        (println (:status response) " " (:body response))
+        {:status 204})))
   (ANY "*" []
     (route/not-found "This is not the page you're looking for!")))
 
