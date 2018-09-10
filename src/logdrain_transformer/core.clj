@@ -10,21 +10,27 @@
 
 (def elastic-url (environ/env :bonsai-url))
 
+(defn parse-syslog-msg [line]
+  (let [parts (-> line
+                  (string/split #" " 8)
+                  (nthnext 2))
+        date (first parts)
+        host (str (nth parts 2) "[" (nth parts 3) "]")
+        message (last parts)]
+    {:date date :host host :message message}))
+
 (defroutes app
   (POST "/ingest" {body-stream :body}
+    (println "Got /ingest")
     ;; Right now, this function assumes its input is valid (no validation)
     ;; and it only forwards the elastic server's response. TODO: not that.
-    (let [parts (-> body-stream
-                    (slurp)
-                    (string/split #" " 8)
-                    (nthnext 2))
-          date (first parts)
-          host (str (nth parts 2) "[" (nth parts 3) "]")
-          message (last parts)]
-      (println "Got /ingest POST - date: " date ", message: " message)
-      (let [response (client/post (str elastic-url "/logs/_doc/")
+    (doseq [line (-> body-stream
+                     (slurp)
+                     (string/split-lines))]
+      (let [params (parse-syslog-msg line)
+            response (client/post (str elastic-url "/logs/_doc/")
                                   {:content-type :json
-                                   :form-params {:date date :host host :message message}})]
+                                   :form-params params})]
         (println (:status response) " " (:body response))
         {:status 204})))
   (ANY "*" []
