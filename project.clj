@@ -6,7 +6,8 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [compojure "LATEST"]
                  [ring/ring-jetty-adapter "LATEST"]
-                 [environ "LATEST"]]
+                 [environ "LATEST"]
+                 [clj-http "LATEST"]]
   :min-lein-version "2.7.1"
   :plugins [[environ/environ.lein "LATEST"]]
   :hooks[environ.leiningen.hooks]
