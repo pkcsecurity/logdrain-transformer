@@ -20,9 +20,12 @@
                     (nthnext 2))
           date (first parts)
           message (second parts)]
-      (client/post (str elastic-url "/logs/_doc/")
-                   {:content-type :json
-                    :form-params {:date date :message message}})))
+      (println "Got /ingest POST - date: " date ", message: " message)
+      (let [response (client/post (str elastic-url "/logs/_doc/")
+                                  {:content-type :json
+                                   :form-params {:date date :message message}})]
+        (prn response)
+        response)))
   (ANY "*" []
     (route/not-found "This is not the page you're looking for!")))
 
