@@ -21,12 +21,11 @@
 
 (defroutes app
   (POST "/ingest" {body-stream :body}
-    (println "Got /ingest")
-    ;; Right now, this function assumes its input is valid (no validation)
-    ;; and it only forwards the elastic server's response. TODO: not that.
+    ;; Right now, this function assumes its input is valid. TODO: not that.
     (doseq [line (-> body-stream
                      (slurp)
                      (string/split-lines))]
+      (prn "Processing line: " line)
       (let [params (parse-syslog-msg line)
             response (client/post (str elastic-url "/logs/_doc/")
                                   {:content-type :json
