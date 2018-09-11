@@ -7,8 +7,8 @@
                  [compojure "LATEST"]
                  [ring/ring-jetty-adapter "LATEST"]
                  [environ "LATEST"]
-                 [clj-http "LATEST"]
-                 [cheshire "LATEST"]]
+                 [cheshire "LATEST"]
+                 [com.squareup.okhttp3/okhttp "LATEST"]]
   :min-lein-version "2.7.1"
   :plugins [[environ/environ.lein "LATEST"]]
   :hooks[environ.leiningen.hooks]

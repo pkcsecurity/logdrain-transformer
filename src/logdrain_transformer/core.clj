@@ -6,15 +6,15 @@
             [ring.adapter.jetty :as jetty]
             [environ.core :as environ]
             [clojure.string :as string]
-            [clj-http.client :as client]
-            [cheshire.core :as json])
+            [cheshire.core :as json]
+            [logdrain-transformer.integrations.okhttp :as http])
   (:import [java.util.concurrent Executors
                                  TimeUnit]))
 
 (def elastic-url (environ/env :bonsai-url))
-(def bulk-index-action (str (json/generate-string {:index {:_index "logs"}}) "\n"))
+(def bulk-index-action (str (json/generate-string {:index {:_index "logs" :_type "_doc"}}) "\n"))
 
-(def pool (Executors/newSingleThreadScheduledExecutor))
+(defonce pool (Executors/newSingleThreadScheduledExecutor))
 (def queue (atom []))
 
 
@@ -43,31 +43,28 @@
                             (map json/generate-string)
                             (string/join (str "\n" bulk-index-action))
                             (str bulk-index-action))]
-      (client/post (str elastic-url "/logs/_doc/_bulk")
-                   {:async true
-                    :content-type :json
-                    :body bulk-request}
-                   (fn [response] (println (:status response) " " (:body response)))
-                   (fn [exception] (throw exception))))))
+      (println bulk-request)
+      (http/async-req "POST"
+                      (str elastic-url "/logs/_doc/_bulk")
+                      :media-type "application/x-ndjson; charset=utf-8"
+                      :body bulk-request))))
 
 
 (defroutes app
   (POST "/ingest" {body-stream :body}
     ;; Right now, this function assumes its input is valid. TODO: not that.
-    (doseq [line (-> body-stream
-                     (slurp)
-                     (string/split-lines))]
-      (prn "Adding line to queue: " line)
-      (locking queue
-        (swap! queue conj line)))
+    (locking queue
+      (swap! queue into (-> body-stream
+                            (slurp :encoding "UTF-8")
+                            (string/split-lines))))
     {:status 204})
   (ANY "*" []
     (route/not-found "This is not the page you're looking for!")))
 
 (defn -main [& [port]]
   (let [port (Integer. (or port (environ/env :port) 5000))]
-    (jetty/run-jetty (site #'app) {:port port :join? false}))
-  (.scheduleAtFixedRate pool batch-send 0 5 TimeUnit/SECONDS))
+    (.scheduleAtFixedRate pool batch-send 0 5 TimeUnit/SECONDS)
+    (jetty/run-jetty (site #'app) {:port port :join? false})))
 
 ;; For interactive development:
 ;; (.stop server)
