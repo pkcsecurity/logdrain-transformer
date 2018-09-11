@@ -36,17 +36,19 @@
 
 (defn batch-send []
   (println "Running batch-send")
-  (when-let [work (drain-queue)]
+  (when-let [work (seq (drain-queue))]
     (println "When-let got: " (count work))
     (let [source-maps (map parse-syslog-msg work)
           bulk-request (->> source-maps
                             (map json/generate-string)
                             (string/join (str "\n" bulk-index-action))
-                            (str bulk-index-action))
-          response (client/post (str elastic-url "/logs/_doc/_bulk")
-                                {:content-type :json
-                                 :body bulk-request})]
-      (println (:status response) " " (:body response)))))
+                            (str bulk-index-action))]
+      (client/post (str elastic-url "/logs/_doc/_bulk")
+                   {:async true
+                    :content-type :json
+                    :body bulk-request}
+                   (fn [response] (println (:status response) " " (:body response)))
+                   (fn [exception] (throw exception))))))
 
 
 (defroutes app
