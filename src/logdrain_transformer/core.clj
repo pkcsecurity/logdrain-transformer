@@ -35,8 +35,10 @@
       oldval)))
 
 (defn batch-send []
+  (println "Running batch-send")
   (when-let [work (drain-queue)]
-    (let [source-maps (map parse-syslog-msg (work))
+    (println "When-let got: " (count work))
+    (let [source-maps (map parse-syslog-msg work)
           bulk-request (->> source-maps
                             (map json/generate-string)
                             (string/join (str "\n" bulk-index-action))
