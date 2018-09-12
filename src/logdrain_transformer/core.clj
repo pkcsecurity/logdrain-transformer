@@ -50,30 +50,26 @@
 
 (defn batch-send []
   (when-let [work (seq (drain-queue))]
-    (println "When-let got: " (count work))
+    (println "Sending" (count work) "messages for indexing")
     (let [url (str elastic-url "/logs/_doc/_bulk")
           source-maps (map parse-syslog-msg work)
           bulk-request (as-> source-maps $
                             (map json/generate-string $)
                             (string/join (str "\n" bulk-index-action) $)
                             (str bulk-index-action $ "\n"))]
-      (println bulk-request)
-      (with-open [client (http/create-client)] ;consider adding args to create-client here, like :keep-alive false
+      (with-open [client (http/create-client)]
         (let [response (http/POST
                            client
                            url
                            :headers {:content-type "application/x-ndjson"
                                      :authorization (auth-headers-from-url url)}
-                           :body bulk-request)]
-          (println (-> response
+                           :body bulk-request)
+              status (-> response
                        http/await
-                       http/string))))
-      #_(http/async-req "POST"
-                      url
-                      :media-type "application/x-ndjson"
-                      :headers {:content-type "application/x-ndjson"
-                                :authorization (http/auth-headers-from-url url)}
-                      :body bulk-request))))
+                       http/status)]
+          (println "Got" (:code status) "from Elasticsearch")
+          (when (>= status 400)
+            (throw (http/error response))))))))
 
 
 (defroutes app
