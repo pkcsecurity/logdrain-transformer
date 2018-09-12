@@ -51,6 +51,7 @@
 (defn batch-send []
   (when-let [work (seq (drain-queue))]
     (println "When-let got: " (count work))
+    (println work)
     (let [url (str elastic-url "/logs/_doc/_bulk")
           source-maps (map parse-syslog-msg work)
           bulk-request (as-> source-maps $
