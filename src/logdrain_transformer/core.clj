@@ -7,8 +7,10 @@
             [environ.core :as environ]
             [clojure.string :as string]
             [cheshire.core :as json]
-            [logdrain-transformer.integrations.okhttp :as http])
-  (:import [java.util.concurrent Executors
+            [http.async.client :as http])
+  (:import [java.net URL]
+           [java.util Base64]
+           [java.util.concurrent Executors
                                  TimeUnit]))
 
 (def elastic-url (environ/env :bonsai-url))
@@ -28,6 +30,18 @@
     {:date date :host host :message message}))
 
 
+(defn auth-headers-from-url
+  "Takes a URL with embedded credentials and returns an encoded Basic Auth header value with those creds"
+  [url-string]
+  (->> url-string
+       (URL.)
+       (.getUserInfo)
+       (.getBytes)
+       (.encode (Base64/getEncoder))
+       (String.)
+       (str "Basic ")))
+
+
 (defn drain-queue []
   (locking queue
     (let [oldval @queue]
@@ -35,18 +49,30 @@
       oldval)))
 
 (defn batch-send []
-  (println "Running batch-send")
   (when-let [work (seq (drain-queue))]
     (println "When-let got: " (count work))
-    (let [source-maps (map parse-syslog-msg work)
-          bulk-request (->> source-maps
-                            (map json/generate-string)
-                            (string/join (str "\n" bulk-index-action))
-                            (str bulk-index-action))]
+    (let [url (str elastic-url "/logs/_doc/_bulk")
+          source-maps (map parse-syslog-msg work)
+          bulk-request (as-> source-maps $
+                            (map json/generate-string $)
+                            (string/join (str "\n" bulk-index-action) $)
+                            (str bulk-index-action $ "\n"))]
       (println bulk-request)
-      (http/async-req "POST"
-                      (str elastic-url "/logs/_doc/_bulk")
-                      :media-type "application/x-ndjson; charset=utf-8"
+      (with-open [client (http/create-client)] ;consider adding args to create-client here, like :keep-alive false
+        (let [response (http/POST
+                           client
+                           url
+                           :headers {:content-type "application/x-ndjson"
+                                     :authorization (auth-headers-from-url url)}
+                           :body bulk-request)]
+          (println (-> response
+                       http/await
+                       http/string))))
+      #_(http/async-req "POST"
+                      url
+                      :media-type "application/x-ndjson"
+                      :headers {:content-type "application/x-ndjson"
+                                :authorization (http/auth-headers-from-url url)}
                       :body bulk-request))))
 
 
