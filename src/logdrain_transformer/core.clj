@@ -7,7 +7,9 @@
             [environ.core :as environ]
             [clojure.string :as string]
             [cheshire.core :as json]
-            [http.async.client :as http])
+            [http.async.client :as http]
+            [instaparse.core :as insta]
+            [clojure.core.match :as m])
   (:import [java.net URL]
            [java.util Base64]
            [java.util.concurrent Executors
@@ -19,15 +21,35 @@
 (defonce pool (Executors/newSingleThreadScheduledExecutor))
 (def queue (atom []))
 
+(def syslog-parser
+  (insta/parser 
+   "
+    WORK = R+;
+    R = HEADER TS HOSTINTRO HOST SP APP DASH MSG;
+    HEADER = LEN SP PRI VERSION SP;
+    HOSTINTRO = SP \"host\" SP;
+    DASH = SP \"-\" SP;
+    <LEN> = #\"[1-9][0-9]*\";
+    <SP> = \" \";
+    PRI = \"<\" LEN \">\";
+    VERSION = LEN;
+    TS = #\"[0-9\\-T:]{19}\" MS? TZ;
+    <MS> = #\"\\.\\d{6}\";
+    <TZ> = #\"\\+\\d{2}:\\d{2}\";
+    <HOST> = #\"[^ ]+\";
+    <APP> = HOST;
+    <MSG> = !R (#\"[^\\.]+\" / #\".\")+;
+   "))
 
-(defn parse-syslog-msg [line]
-  (let [parts (-> line
-                  (string/split #" " 8)
-                  (nthnext 2))
-        date (first parts)
-        host (str (nth parts 2) "[" (nth parts 3) "]")
-        message (last parts)]
-    {:date date :host host :message message}))
+(defn parse-and-match [line]
+  (when-let [tree (syslog-parser line)]
+    (for [record (m/match [tree]
+                          [[:WORK & rs]] rs
+                          :else nil)
+          :when record]
+      (m/match [record]
+               [[:R _ [:TS & ts] _ host _ app _ & msg]]
+               {:date (string/join ts) :host (str host "[" app "]") :message (string/join msg)}))))
 
 
 (defn auth-headers-from-url
@@ -37,8 +59,7 @@
        (URL.)
        (.getUserInfo)
        (.getBytes)
-       (.encode (Base64/getEncoder))
-       (String.)
+       (.encodeToString (Base64/getEncoder))
        (str "Basic ")))
 
 
@@ -50,9 +71,10 @@
 
 (defn batch-send []
   (when-let [work (seq (drain-queue))]
-    (println "Sending" (count work) "messages for indexing")
+    (println "When-let got: " (count work))
+    (println work)
     (let [url (str elastic-url "/logs/_doc/_bulk")
-          source-maps (map parse-syslog-msg work)
+          source-maps (mapcat parse-and-match work)
           bulk-request (as-> source-maps $
                             (map json/generate-string $)
                             (string/join (str "\n" bulk-index-action) $)

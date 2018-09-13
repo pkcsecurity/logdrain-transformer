@@ -8,7 +8,9 @@
                  [ring/ring-jetty-adapter "LATEST"]
                  [environ "LATEST"]
                  [cheshire "LATEST"]
-                 [http.async.client "LATEST"]]
+                 [http.async.client "LATEST"]
+                 [instaparse "LATEST"]
+                 [org.clojure/core.match "LATEST"]]
   :min-lein-version "2.7.1"
   :plugins [[environ/environ.lein "LATEST"]]
   :hooks[environ.leiningen.hooks]
