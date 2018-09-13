@@ -79,7 +79,7 @@
                             (map json/generate-string $)
                             (string/join (str "\n" bulk-index-action) $)
                             (str bulk-index-action $ "\n"))]
-      (with-open [client (http/create-client)]
+      (with-open [client (http/create-client :keep-alive false)]
         (let [response (http/POST
                            client
                            url
@@ -87,8 +87,8 @@
                                      :authorization (auth-headers-from-url url)}
                            :body bulk-request)
               real-response (http/await response)
-              status (http/status real-response)
-              body (http/string real-response)]
+              body (http/string real-response)
+              status (http/status real-response)]
           (println "Got" (:code status) "from Elasticsearch")
           (when (>= status 400)
             (throw (http/error real-response)))
