@@ -21,6 +21,11 @@
 (defonce pool (Executors/newSingleThreadScheduledExecutor))
 (def queue (atom []))
 
+(defn printerr [s]
+  (binding [*out* *err*]
+    (println s)))
+
+
 (def syslog-parser
   (insta/parser 
    "
@@ -90,8 +95,8 @@
               body (http/string real-response)
               status (http/status real-response)]
           (println "Got" (:code status) "from Elasticsearch")
-          (when (>= status 400)
-            (throw (http/error real-response)))
+          (when (>= (:code status) 400)
+            (printerr (http/error real-response)))
           (println :the body))))))
 
 
