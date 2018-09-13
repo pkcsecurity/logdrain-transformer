@@ -91,7 +91,8 @@
                        http/status)]
           (println "Got" (:code status) "from Elasticsearch")
           (when (>= status 400)
-            (throw (http/error response))))))))
+            (throw (http/error response)))
+          (println (http/string response)))))))
 
 
 (defroutes app
