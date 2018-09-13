@@ -92,7 +92,7 @@
           (println "Got" (:code status) "from Elasticsearch")
           (when (>= status 400)
             (throw (http/error real-response)))
-          (println body))))))
+          (println :the body))))))
 
 
 (defroutes app
