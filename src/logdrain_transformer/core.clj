@@ -86,13 +86,13 @@
                            :headers {:content-type "application/x-ndjson"
                                      :authorization (auth-headers-from-url url)}
                            :body bulk-request)
-              status (-> response
-                       http/await
-                       http/status)]
+              real-response (http/await response)
+              status (http/status real-response)
+              body (http/string real-response)]
           (println "Got" (:code status) "from Elasticsearch")
           (when (>= status 400)
-            (throw (http/error response)))
-          (println (http/string response)))))))
+            (throw (http/error real-response)))
+          (println body))))))
 
 
 (defroutes app
