@@ -21,9 +21,9 @@
 (defonce pool (Executors/newSingleThreadScheduledExecutor))
 (def queue (atom []))
 
-(defn printerr [s]
+(defn printerr [& s]
   (binding [*out* *err*]
-    (println s)))
+    (apply println s)))
 
 
 (def syslog-parser
@@ -92,12 +92,10 @@
                                      :authorization (auth-headers-from-url url)}
                            :body bulk-request)
               real-response (http/await response)
-              body (http/string real-response)
               status (http/status real-response)]
           (println "Got" (:code status) "from Elasticsearch")
           (when (>= (:code status) 400)
-            (printerr (http/error real-response)))
-          (println :the body))))))
+            (printerr "Got bad status: " status "\n" (http/error real-response))))))))
 
 
 (defroutes app
