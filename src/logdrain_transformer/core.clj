@@ -76,8 +76,7 @@
 
 (defn batch-send []
   (when-let [work (seq (drain-queue))]
-    (println "When-let got: " (count work))
-    (println work)
+    (println "Sending" (count work) "logs to Elasticsearch")
     (let [url (str elastic-url "/logs/_doc/_bulk")
           source-maps (mapcat parse-and-match work)
           bulk-request (as-> source-maps $
