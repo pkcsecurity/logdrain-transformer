@@ -4,7 +4,7 @@
             [http.async.client :as http]
             [clojure.java.io :as io]
             [environ.core :as environ]
-            [elasticlogs-shove.s3 :as s3])
+            [log-shove.s3 :as s3])
   (:import [java.net URL]
            [java.util Base64]
            [java.util.concurrent Executors

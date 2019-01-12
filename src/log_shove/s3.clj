@@ -48,4 +48,3 @@
       (s3-filename-by-date)
       (get-s3-archive)
       (GZIPInputStream.)))
-
