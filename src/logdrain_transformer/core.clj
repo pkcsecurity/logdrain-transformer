@@ -13,7 +13,7 @@
   (:import [java.net URL]
            [java.util Base64]
            [java.util.concurrent Executors
-                                 TimeUnit]))
+            TimeUnit]))
 
 (def elastic-url (environ/env :bonsai-url))
 (def bulk-index-action (str (json/generate-string {:index {:_index "logs" :_type "_doc"}}) "\n"))
@@ -25,9 +25,8 @@
   (binding [*out* *err*]
     (apply println s)))
 
-
 (def syslog-parser
-  (insta/parser 
+  (insta/parser
    "
     WORK = R+;
     R = HEADER TS HOSTINTRO HOST SP APP DASH MSG;
@@ -49,13 +48,12 @@
 (defn parse-and-match [line]
   (when-let [tree (syslog-parser line)]
     (for [record (m/match [tree]
-                          [[:WORK & rs]] rs
-                          :else nil)
+                   [[:WORK & rs]] rs
+                   :else nil)
           :when record]
       (m/match [record]
-               [[:R _ [:TS & ts] _ host _ app _ & msg]]
-               {:date (string/join ts) :host (str host "[" app "]") :message (string/join msg)}))))
-
+        [[:R _ [:TS & ts] _ host _ app _ & msg]]
+        {:date (string/join ts) :host (str host "[" app "]") :message (string/join msg)}))))
 
 (defn auth-headers-from-url
   "Takes a URL with embedded credentials and returns an encoded Basic Auth header value with those creds"
@@ -66,7 +64,6 @@
        (.getBytes)
        (.encodeToString (Base64/getEncoder))
        (str "Basic ")))
-
 
 (defn drain-queue []
   (locking queue
@@ -80,22 +77,21 @@
     (let [url (str elastic-url "/logs/_doc/_bulk")
           source-maps (mapcat parse-and-match work)
           bulk-request (as-> source-maps $
-                            (map json/generate-string $)
-                            (string/join (str "\n" bulk-index-action) $)
-                            (str bulk-index-action $ "\n"))]
+                         (map json/generate-string $)
+                         (string/join (str "\n" bulk-index-action) $)
+                         (str bulk-index-action $ "\n"))]
       (with-open [client (http/create-client :keep-alive false)]
         (let [response (http/POST
-                           client
-                           url
-                           :headers {:content-type "application/x-ndjson"
-                                     :authorization (auth-headers-from-url url)}
-                           :body bulk-request)
+                         client
+                         url
+                         :headers {:content-type "application/x-ndjson"
+                                   :authorization (auth-headers-from-url url)}
+                         :body bulk-request)
               real-response (http/await response)
               status (http/status real-response)]
           (println "Got" (:code status) "from Elasticsearch")
           (when (>= (:code status) 400)
             (printerr "Got bad status: " status "\n" (http/error real-response))))))))
-
 
 (defroutes app
   (POST "/ingest" {body-stream :body}

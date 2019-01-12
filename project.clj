@@ -14,7 +14,9 @@
                  [org.slf4j/slf4j-nop "LATEST"]
                  [com.amazonaws/aws-java-sdk-s3 "LATEST"]]
   :min-lein-version "2.7.1"
-  :plugins [[environ/environ.lein "LATEST"]]
+  :plugins [[environ/environ.lein "LATEST"]
+            [lein-cljfmt "LATEST"]]
+  :source-paths ["src"]
   :hooks[environ.leiningen.hooks]
   :uberjar-name "logdrain-transformer-standalone.jar"
   :profiles {:production {:env {:production true}}})

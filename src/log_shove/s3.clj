@@ -4,9 +4,12 @@
    [java.util Calendar]
    [java.util.zip GZIPInputStream]
    [com.amazonaws.auth EnvironmentVariableCredentialsProvider]
-   [com.amazonaws.services.s3 AmazonS3ClientBuilder]
-   [com.amazonaws.services.s3.model S3Object
-                                    S3ObjectInputStream]))
+   [com.amazonaws.services.s3
+    AmazonS3Client
+    AmazonS3ClientBuilder]
+   [com.amazonaws.services.s3.model
+    S3Object
+    S3ObjectInputStream]))
 
 (def bucket-name "imb-generosity-logs")
 (def filename-prefix "b612fd4b4b")
@@ -16,14 +19,13 @@
       (.withCredentials (EnvironmentVariableCredentialsProvider.))
       (.build)))
 
-
 (defn nice-calendar [cal field]
   (condp = field
     Calendar/YEAR (.get cal field)
     Calendar/DATE (format "%02d" (.get cal field))
     Calendar/MONTH (->> (.get cal field)
-                       (+ 1)
-                       (format "%02d"))))
+                        (+ 1)
+                        (format "%02d"))))
 
 (defn s3-filename-by-date [^Calendar cal]
   (let [year (nice-calendar cal Calendar/YEAR)
@@ -41,7 +43,6 @@
     (-> (s3-client)
         (.getObject bucket-name filename)
         (.getObjectContent))))
-
 
 (defn stream-yesterday-archive []
   (-> (doto (Calendar/getInstance) (.add Calendar/DATE -1))

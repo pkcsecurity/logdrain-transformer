@@ -7,9 +7,9 @@
             [log-shove.s3 :as s3])
   (:import [java.net URL]
            [java.util Base64]
-           [java.util.concurrent Executors
-                                 TimeUnit]))
-
+           [java.util.concurrent
+            Executors
+            TimeUnit]))
 
 (def elastic-url (environ/env :bonsai-url))
 (def bulk-index-action (str (json/generate-string {:index {:_index "logs" :_type "_doc"}}) "\n"))
@@ -26,7 +26,6 @@
        (.encodeToString (Base64/getEncoder))
        (str "Basic ")))
 
-
 (defn batch-send [work]
   (print "Sending batch #" (str (swap! batch-count inc) "... "))
   (let [url (str elastic-url "/logs/_doc/_bulk")
@@ -36,8 +35,8 @@
                        (str bulk-index-action $ "\n"))]
     (with-open [client (http/create-client :keep-alive false)]
       (let [response (http/POST
-                         client
-                         url
+                       client
+                       url
                        :headers {:content-type "application/x-ndjson"
                                  :authorization (auth-headers-from-url url)}
                        :body bulk-request)
@@ -46,7 +45,6 @@
         (println (:code status))
         (when (>= (:code status) 400)
           (println "Got bad status: " status "\n" (http/error real-response)))))))
-
 
 (defn stream-logs-from-reader [reader lazy?]
   (for [log-json (if lazy?
@@ -57,16 +55,13 @@
      :host (:_app log)
      :message (:message log)}))
 
-
 (defn enqueue-file [file & {:keys [lazy?] :or {lazy? true}}]
   (with-open [r (io/reader file)]
     (dorun (map batch-send (partition 50 (stream-logs-from-reader r lazy?))))))
 
-
 (defn -main [args]
   (with-open [stream (s3/stream-yesterday-archive)]
     (enqueue-file stream :lazy false)))
-
 
 (defn index-local-files [dirpath]
   (println "Checking" dirpath "for files to upload...")
