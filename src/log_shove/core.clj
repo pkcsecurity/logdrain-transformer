@@ -59,7 +59,7 @@
   (with-open [r (io/reader file)]
     (dorun (map batch-send (partition 50 (stream-logs-from-reader r lazy?))))))
 
-(defn -main [args]
+(defn -main [& _]
   (with-open [stream (s3/stream-yesterday-archive)]
     (enqueue-file stream :lazy false)))
 
