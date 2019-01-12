@@ -11,7 +11,8 @@
                  [http.async.client "LATEST"]
                  [instaparse "LATEST"]
                  [org.clojure/core.match "LATEST"]
-                 [org.slf4j/slf4j-nop "LATEST"]]
+                 [org.slf4j/slf4j-nop "LATEST"]
+                 [com.amazonaws/aws-java-sdk-s3 "LATEST"]]
   :min-lein-version "2.7.1"
   :plugins [[environ/environ.lein "LATEST"]]
   :hooks[environ.leiningen.hooks]
