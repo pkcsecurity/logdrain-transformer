@@ -37,7 +37,7 @@
          month "/"
          filename-prefix "."
          (string/join "-" [year month day])
-         ".json.gz")))
+         ".23.json.gz")))
 
 (defn ^S3ObjectInputStream get-s3-archive [filename]
   (println "Trying to get" filename "from" bucket-name)
