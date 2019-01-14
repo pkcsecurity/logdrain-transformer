@@ -1,0 +1,11 @@
+{
+    "mappings" : {
+	"_doc" : {
+	    "properties" : {
+		"date" : {"type" : "date"},
+		"host" : {"type" : "keyword"},
+		"message" : {"type" : "text"}
+	    }
+	}
+    }
+}
