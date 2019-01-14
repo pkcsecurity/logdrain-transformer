@@ -62,8 +62,9 @@
 (defn -main [& _]
   #_(println "Retrieving and indexing yesterday's log archive...")
   (println "Retrieving and indexing desired log archives...")
-  (with-open [stream (s3/stream-special)] ;; (s3/stream-yesterday-archive)
-    (enqueue-file stream :lazy false))
+  (doseq [s (s3/stream-special)]
+    (with-open [stream s] ;; (s3/stream-yesterday-archive)
+      (enqueue-file stream :lazy false)))
   (println "Done."))
 
 (defn index-local-files [dirpath]
