@@ -29,7 +29,7 @@
                         (+ 1)
                         (format "%02d"))))
 
-(defn s3-filename-by-date [^Calendar cal]
+(defn s3-filename-by-calendar [^Calendar cal]
   (let [year (nice-calendar cal Calendar/YEAR)
         month (nice-calendar cal Calendar/MONTH)
         day (nice-calendar cal Calendar/DATE)]
@@ -38,6 +38,13 @@
          filename-prefix "."
          (string/join "-" [year month day])
          ".23.json.gz")))
+
+(defn s3-filename-by-date [year month day]
+  (str year "/"
+       month "/"
+       filename-prefix "."
+       (string/join "-" [year month day])
+       ".23.json.gz"))
 
 (defn ^S3ObjectInputStream get-s3-archive [filename]
   (println "Trying to get" filename "from" bucket-name)
@@ -48,6 +55,15 @@
 
 (defn stream-yesterday-archive []
   (-> (doto (Calendar/getInstance) (.add Calendar/DATE -1))
-      (s3-filename-by-date)
+      (s3-filename-by-calendar)
       (get-s3-archive)
       (GZIPInputStream.)))
+
+(defn stream-special []
+  (let [year "2018"
+        month "12"
+        days (map str [5 6 7 8 9 10 11 12 19 20 21 27 28 29])]
+    (for [day days]
+      (-> (s3-filename-by-date year month day)
+          (get-s3-archive)
+          (GZIPInputStream.)))))

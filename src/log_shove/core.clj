@@ -60,8 +60,9 @@
     (dorun (map batch-send (partition 50 (stream-logs-from-reader r lazy?))))))
 
 (defn -main [& _]
-  (println "Retrieving and indexing yesterday's log archive...")
-  (with-open [stream (s3/stream-yesterday-archive)]
+  #_(println "Retrieving and indexing yesterday's log archive...")
+  (println "Retrieving and indexing desired log archives...")
+  (with-open [stream (s3/stream-special)] ;; (s3/stream-yesterday-archive)
     (enqueue-file stream :lazy false))
   (println "Done."))
 
