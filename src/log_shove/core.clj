@@ -27,7 +27,7 @@
        (str "Basic ")))
 
 (defn batch-send [work]
-  (print "Sending batch #" (str (swap! batch-count inc) "... "))
+  (print "Indexing batch #" (str (swap! batch-count inc) "... "))
   (let [url (str elastic-url "/logs/_doc/_bulk")
         bulk-request (as-> work $
                        (map json/generate-string $)
@@ -60,8 +60,10 @@
     (dorun (map batch-send (partition 50 (stream-logs-from-reader r lazy?))))))
 
 (defn -main [& _]
+  (println "Retrieving and indexing yesterday's log archive...")
   (with-open [stream (s3/stream-yesterday-archive)]
-    (enqueue-file stream :lazy false)))
+    (enqueue-file stream :lazy false))
+  (println "Done."))
 
 (defn index-local-files [dirpath]
   (println "Checking" dirpath "for files to upload...")
