@@ -57,7 +57,7 @@
 
 (defn enqueue-file [file & {:keys [lazy?] :or {lazy? true}}]
   (with-open [r (io/reader file)]
-    (dorun (map batch-send (partition 100 (stream-logs-from-reader r lazy?))))))
+    (dorun (map batch-send (partition 500 (stream-logs-from-reader r lazy?))))))
 
 (defn -main [& _]
   #_(println "Retrieving and indexing yesterday's log archive...")
