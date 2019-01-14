@@ -9,13 +9,15 @@
     AmazonS3ClientBuilder]
    [com.amazonaws.services.s3.model
     S3Object
-    S3ObjectInputStream]))
+    S3ObjectInputStream]
+   [com.amazonaws.regions Regions]))
 
 (def bucket-name "imb-generosity-logs")
 (def filename-prefix "b612fd4b4b")
 
 (defn ^AmazonS3Client s3-client []
   (-> (AmazonS3ClientBuilder/standard)
+      (.withRegion Regions/US_EAST_1)
       (.withCredentials (EnvironmentVariableCredentialsProvider.))
       (.build)))
 
