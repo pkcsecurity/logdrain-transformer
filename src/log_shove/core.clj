@@ -77,3 +77,9 @@
       (if (.isFile dir)
         (enqueue-file dir)
         (throw (java.lang.IllegalArgumentException. (str dirpath "is neither a file nor a directory")))))))
+
+(defn index-single-date [year month day]
+  (println "Retrieving and indexing desired log archives...")
+  (with-open [stream (s3/stream-specific-date year month day)]
+    (enqueue-file stream :lazy false))
+  (println "Done."))

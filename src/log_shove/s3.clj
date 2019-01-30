@@ -59,6 +59,11 @@
       (get-s3-archive)
       (GZIPInputStream.)))
 
+(defn stream-specific-date [year month day]
+  (-> (s3-filename-by-date year month day)
+      (get-s3-archive)
+      (GZIPInputStream.)))
+
 (defn stream-special []
   (let [year "2018"
         month "12"
