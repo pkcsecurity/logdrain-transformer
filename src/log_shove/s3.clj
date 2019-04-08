@@ -44,7 +44,8 @@
        month "/"
        filename-prefix "."
        (string/join "-" [year month day])
-       ".23.json.gz"))
+       (if (and (= year "2018") (#{"08" "09" "10"} month) (#{"01" "02" "03" "04" "05"} day)) "" ".23")
+       ".json.gz"))
 
 (defn ^S3ObjectInputStream get-s3-archive [filename]
   (println "Trying to get" filename "from" bucket-name)
