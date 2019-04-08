@@ -66,10 +66,9 @@
       (GZIPInputStream.)))
 
 (defn stream-special []
-  (let [year "2018"
-        month "08"
-        days (map (partial format "%02d") (range 12 32))]
-    (for [day days]
+  (let [year "2018"]
+    (for [month ["09" "10" "11" "12"]
+          day (map (partial format "%02d") (range 12 (if (#{"01 03 05 07 08 10 12"} month) 32 31)))]
       (-> (s3-filename-by-date year month day)
           (get-s3-archive)
           (GZIPInputStream.)))))
