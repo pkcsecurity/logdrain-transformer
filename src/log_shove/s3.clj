@@ -66,8 +66,8 @@
 
 (defn stream-special []
   (let [year "2018"
-        month "12"
-        days (map (partial format "%02d") [5 6 7 8 9 10 11 12 19 20 21 27 28 29])]
+        month "08"
+        days (map (partial format "%02d") (range 12 32))]
     (for [day days]
       (-> (s3-filename-by-date year month day)
           (get-s3-archive)
