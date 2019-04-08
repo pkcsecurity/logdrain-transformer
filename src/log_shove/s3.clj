@@ -68,10 +68,16 @@
 (defn two-digit-range [start end]
   (map (partial format "%02d") (range start end)))
 
+(defn month->maxday [month]
+  (cond
+    (#{"01 03 05 07 08 10 12"} month) 32
+    (= "02" month) 29
+    :else 31))
+
 (defn stream-special []
-  (let [year "2018"]
-    (for [month (two-digit-range 9 13)
-          day (two-digit-range 1 12)]
+  (let [year "2019"]
+    (for [month (two-digit-range 1 5)
+          day (two-digit-range 1 (month-maxday month))]
       (-> (s3-filename-by-date year month day)
           (get-s3-archive)
           (GZIPInputStream.)))))
