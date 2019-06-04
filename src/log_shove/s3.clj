@@ -76,8 +76,8 @@
 
 (defn stream-special []
   (let [year "2019"
-        month "04"]
-    (for [day (two-digit-range 1 8)]
+        month "03"]
+    (for [day (two-digit-range 11 15)]
       (-> (s3-filename-by-date year month day)
           (get-s3-archive)
           (GZIPInputStream.)))))
